@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChapterProps, Incident } from '../types';
 import { ChapterLayout, SectionBlock, SeverityBadge, GlowCard } from '../components/shared';
@@ -44,22 +44,56 @@ export default function Chapter07Alerting({ id }: ChapterProps) {
 
   const criticalPolicy = ESCALATION_POLICIES[0]; // critical policy
 
+  const triggerAutoEscalation = useCallback(() => {
+    setCurrentLevelIndex((prevLevel) => {
+      const nextLevel = Math.min(prevLevel + 1, criticalPolicy.escalationChain.length - 1);
+      const escalatedTo = criticalPolicy.escalationChain[nextLevel];
+
+      setIncident((prev) => {
+        if (prev.status === 'escalated') return prev;
+        return {
+          ...prev,
+          status: 'escalated',
+          history: [
+            {
+              time: new Date().toLocaleTimeString(),
+              action: 'AUTOMATIC ESCALATION TRIGGERED',
+              actor: 'Escalation Engine',
+              detail: `Acknowledgement deadline passed without response. Escalated to ${escalatedTo}.`,
+            },
+            ...prev.history,
+          ],
+        };
+      });
+
+      return nextLevel;
+    });
+  }, [criticalPolicy.escalationChain]);
+
   // Timer countdown
   useEffect(() => {
-    let timer: any;
-    if (isTimerRunning && incident.status === 'new' && secondsRemaining > 0) {
-      timer = setInterval(() => {
-        setSecondsRemaining((prev) => {
-          if (prev <= 1) {
-            triggerAutoEscalation();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    if (!isTimerRunning || incident.status !== 'new') return;
+
+    const timer = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
     return () => clearInterval(timer);
-  }, [isTimerRunning, incident.status, secondsRemaining]);
+  }, [isTimerRunning, incident.status]);
+
+  // Trigger escalation when timer reaches zero
+  useEffect(() => {
+    if (secondsRemaining === 0 && incident.status === 'new' && isTimerRunning) {
+      setIsTimerRunning(false);
+      triggerAutoEscalation();
+    }
+  }, [secondsRemaining, incident.status, isTimerRunning, triggerAutoEscalation]);
 
   // Actions
   const handleAcknowledge = () => {
@@ -79,26 +113,6 @@ export default function Chapter07Alerting({ id }: ChapterProps) {
       ],
     };
     setIncident(updated);
-  };
-
-  const triggerAutoEscalation = () => {
-    const nextLevel = Math.min(currentLevelIndex + 1, criticalPolicy.escalationChain.length - 1);
-    setCurrentLevelIndex(nextLevel);
-    const escalatedTo = criticalPolicy.escalationChain[nextLevel];
-
-    setIncident((prev) => ({
-      ...prev,
-      status: 'escalated',
-      history: [
-        {
-          time: new Date().toLocaleTimeString(),
-          action: 'AUTOMATIC ESCALATION TRIGGERED',
-          actor: 'Escalation Engine',
-          detail: `Acknowledgement deadline passed without response. Escalated to ${escalatedTo}.`,
-        },
-        ...prev.history,
-      ],
-    }));
   };
 
   const handleManualEscalate = () => {

@@ -63,9 +63,11 @@ type Action =
 function reducer(state: PresentationState, action: Action): PresentationState {
   switch (action.type) {
     case 'SET_CHAPTER':
+      if (state.currentChapter === action.chapter) return state;
       return { ...state, currentChapter: action.chapter, scrollProgress: 0 };
 
     case 'SET_SCROLL_PROGRESS':
+      if (Math.abs(state.scrollProgress - action.progress) < 0.05) return state;
       return { ...state, scrollProgress: action.progress };
 
     case 'SET_FULLSCREEN':
@@ -144,7 +146,7 @@ function reducer(state: PresentationState, action: Action): PresentationState {
 // ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialState: PresentationState = {
-  currentChapter: 1,
+  currentChapter: 0,
   scrollProgress: 0,
   isFullscreen: false,
   isAutoplay: false,

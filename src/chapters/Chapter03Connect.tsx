@@ -25,19 +25,26 @@ export default function Chapter03Connect({ id, isActive }: ChapterProps) {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    let t1: ReturnType<typeof setTimeout> | undefined;
+    let t2: ReturnType<typeof setTimeout> | undefined;
+
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: containerRef.current,
         start: 'top 60%',
         onEnter: () => {
-          setTimeout(() => setPhase('connecting'), 500);
-          setTimeout(() => setPhase('connected'), 2000);
+          t1 = setTimeout(() => setPhase('connecting'), 500);
+          t2 = setTimeout(() => setPhase('connected'), 2000);
         },
         onLeaveBack: () => setPhase('scattered'),
       });
     });
 
-    return () => ctx.revert();
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      ctx.revert();
+    };
   }, []);
 
   // Get attack path nodes only

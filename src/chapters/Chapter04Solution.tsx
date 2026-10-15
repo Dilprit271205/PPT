@@ -19,9 +19,10 @@ const assetCategories = [
   { type: 'database', label: 'Critical Business Assets', count: 0 },
 ];
 
+const PATH_NODE_IDS = ATTACK_PATH.steps.map((s) => s.nodeId);
+
 export default function Chapter04Solution({ id, isActive }: ChapterProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const pathNodeIds = ATTACK_PATH.steps.map((s) => s.nodeId);
   const selectedNode = ATTACK_GRAPH_NODES.find((n) => n.id === selectedNodeId) || null;
 
   // Count nodes by type
@@ -58,7 +59,7 @@ export default function Chapter04Solution({ id, isActive }: ChapterProps) {
           <AttackGraph
             nodes={ATTACK_GRAPH_NODES}
             edges={ATTACK_GRAPH_EDGES}
-            highlightPath={pathNodeIds}
+            highlightPath={PATH_NODE_IDS}
             onNodeClick={setSelectedNodeId}
             showControls={true}
             showMiniMap={true}

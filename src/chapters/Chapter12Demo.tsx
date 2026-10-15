@@ -65,6 +65,10 @@ const demoSteps = [
   },
 ];
 
+const PATH_NODE_IDS = ATTACK_PATH.steps.map((s) => s.nodeId);
+const EMPTY_LIST: string[] = [];
+const SECURED_TARGETS = ['customer-pii', 'db-prod'];
+
 export default function Chapter12Demo({ id }: ChapterProps) {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -139,8 +143,6 @@ export default function Chapter12Demo({ id }: ChapterProps) {
     setSelectedActionIds([]);
     setIsFinalCinematic(false);
   };
-
-  const pathNodeIds = ATTACK_PATH.steps.map((s) => s.nodeId);
 
   return (
     <ChapterLayout
@@ -306,9 +308,9 @@ export default function Chapter12Demo({ id }: ChapterProps) {
                 <AttackGraph
                   nodes={ATTACK_GRAPH_NODES}
                   edges={ATTACK_GRAPH_EDGES}
-                  highlightPath={currentStep >= 2 ? pathNodeIds : []}
-                  blockedEdges={isCutSuccessful ? blockedEdgeIds : []}
-                  protectedNodes={isCutSuccessful ? ['customer-pii', 'db-prod'] : []}
+                  highlightPath={currentStep >= 2 ? PATH_NODE_IDS : EMPTY_LIST}
+                  blockedEdges={isCutSuccessful ? blockedEdgeIds : EMPTY_LIST}
+                  protectedNodes={isCutSuccessful ? SECURED_TARGETS : EMPTY_LIST}
                   showControls={true}
                   showMiniMap={false}
                 />

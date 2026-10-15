@@ -32,6 +32,10 @@ import {
   Scissors
 } from 'lucide-react';
 
+const PATH_NODE_IDS = ATTACK_PATH.steps.map((s) => s.nodeId);
+const PROTECTED_TARGETS = ['customer-pii', 'db-prod'];
+const EMPTY_LIST: string[] = [];
+
 export default function Chapter08Remediation({ id }: ChapterProps) {
   // Budget slider state
   const [budget, setBudget] = useState<number>(200000); // $200k default
@@ -118,8 +122,6 @@ export default function Chapter08Remediation({ id }: ChapterProps) {
     }
     return list.sort((a, b) => a.cost - b.cost);
   }, [budget]);
-
-  const pathNodeIds = ATTACK_PATH.steps.map((s) => s.nodeId);
 
   return (
     <ChapterLayout
@@ -310,9 +312,9 @@ export default function Chapter08Remediation({ id }: ChapterProps) {
               <AttackGraph
                 nodes={ATTACK_GRAPH_NODES}
                 edges={ATTACK_GRAPH_EDGES}
-                highlightPath={pathNodeIds}
-                blockedEdges={viewMode === 'after' ? blockedEdgeIdsArray : []}
-                protectedNodes={viewMode === 'after' && isCriticalPathBlocked ? ['customer-pii', 'db-prod'] : []}
+                highlightPath={PATH_NODE_IDS}
+                blockedEdges={viewMode === 'after' ? blockedEdgeIdsArray : EMPTY_LIST}
+                protectedNodes={viewMode === 'after' && isCriticalPathBlocked ? PROTECTED_TARGETS : EMPTY_LIST}
                 showControls={true}
                 showMiniMap={false}
               />

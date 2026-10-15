@@ -1,11 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
-  useNodesState,
-  useEdgesState,
   Node,
   Edge,
   MarkerType,
@@ -132,8 +130,6 @@ export function AttackGraph({
   showMiniMap = false,
   interactive = true,
 }: AttackGraphProps) {
-  const [, setSelectedNode] = useState<string | null>(null);
-
   // Memoize stable keys for array props to avoid unnecessary recalculations
   const highlightKey = highlightPath.join(',');
   const blockedKey = blockedEdges.join(',');
@@ -200,7 +196,6 @@ export function AttackGraph({
   );
 
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setSelectedNode(node.id);
     onNodeClick?.(node.id);
   }, [onNodeClick]);
 

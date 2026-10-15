@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, lazy, Suspense } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { PresentationProvider, usePresentationStore } from './store/presentationStore';
@@ -8,21 +8,20 @@ import { ProgressBar } from './components/ProgressBar';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CHAPTERS } from './data/scenarioData';
 
-gsap.registerPlugin(ScrollTrigger);
+import Chapter01Opening from './chapters/Chapter01Opening';
+import Chapter02Problem from './chapters/Chapter02Problem';
+import Chapter03Connect from './chapters/Chapter03Connect';
+import Chapter04Solution from './chapters/Chapter04Solution';
+import Chapter05Intelligence from './chapters/Chapter05Intelligence';
+import Chapter06Workflow from './chapters/Chapter06Workflow';
+import Chapter07Alerting from './chapters/Chapter07Alerting';
+import Chapter08Remediation from './chapters/Chapter08Remediation';
+import Chapter09USP from './chapters/Chapter09USP';
+import Chapter10TechStack from './chapters/Chapter10TechStack';
+import Chapter11Business from './chapters/Chapter11Business';
+import Chapter12Demo from './chapters/Chapter12Demo';
 
-// Lazy-load chapters for performance
-const Chapter01Opening = lazy(() => import('./chapters/Chapter01Opening'));
-const Chapter02Problem = lazy(() => import('./chapters/Chapter02Problem'));
-const Chapter03Connect = lazy(() => import('./chapters/Chapter03Connect'));
-const Chapter04Solution = lazy(() => import('./chapters/Chapter04Solution'));
-const Chapter05Intelligence = lazy(() => import('./chapters/Chapter05Intelligence'));
-const Chapter06Workflow = lazy(() => import('./chapters/Chapter06Workflow'));
-const Chapter07Alerting = lazy(() => import('./chapters/Chapter07Alerting'));
-const Chapter08Remediation = lazy(() => import('./chapters/Chapter08Remediation'));
-const Chapter09USP = lazy(() => import('./chapters/Chapter09USP'));
-const Chapter10TechStack = lazy(() => import('./chapters/Chapter10TechStack'));
-const Chapter11Business = lazy(() => import('./chapters/Chapter11Business'));
-const Chapter12Demo = lazy(() => import('./chapters/Chapter12Demo'));
+gsap.registerPlugin(ScrollTrigger);
 
 const chapterComponents = [
   Chapter01Opening,
@@ -45,7 +44,6 @@ function PresentationContent() {
     setCurrentChapter,
     isChapterMenuOpen,
     setIsChapterMenuOpen,
-    setScrollProgress,
     isFullscreen,
     setIsFullscreen,
     isAutoplay,
@@ -55,32 +53,26 @@ function PresentationContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Set up chapter scroll tracking
+  // Set up chapter scroll tracking with gsap context
   useEffect(() => {
-    const triggers: ScrollTrigger[] = [];
+    const ctx = gsap.context(() => {
+      chapterRefs.current.forEach((ref, index) => {
+        if (!ref) return;
 
-    chapterRefs.current.forEach((ref, index) => {
-      if (!ref) return;
-
-      const trigger = ScrollTrigger.create({
-        trigger: ref,
-        start: 'top center',
-        end: 'bottom center',
-        onEnter: () => setCurrentChapter(index),
-        onEnterBack: () => setCurrentChapter(index),
-        onUpdate: (self) => {
-          if (self.isActive) {
-            setScrollProgress(self.progress);
-          }
-        },
+        ScrollTrigger.create({
+          trigger: ref,
+          start: 'top 50%',
+          end: 'bottom 50%',
+          onEnter: () => setCurrentChapter(index),
+          onEnterBack: () => setCurrentChapter(index),
+        });
       });
-      triggers.push(trigger);
     });
 
     return () => {
-      triggers.forEach((t) => t.kill());
+      ctx.revert();
     };
-  }, [setCurrentChapter, setScrollProgress]);
+  }, [setCurrentChapter]);
 
   const navigateToChapter = useCallback((index: number) => {
     const ref = chapterRefs.current[index];
@@ -191,26 +183,20 @@ function PresentationContent() {
       />
 
       {/* Chapters */}
-      <Suspense fallback={
-        <div className="h-screen flex items-center justify-center bg-[#07080C]">
-          <div className="w-8 h-8 border-2 border-[#E53935] border-t-transparent rounded-full animate-spin" />
-        </div>
-      }>
-        {chapterComponents.map((ChapterComponent, index) => (
-          <div
-            key={CHAPTERS[index].id}
-            ref={(el) => { chapterRefs.current[index] = el; }}
+      {chapterComponents.map((ChapterComponent, index) => (
+        <div
+          key={CHAPTERS[index].id}
+          ref={(el) => { chapterRefs.current[index] = el; }}
+          id={CHAPTERS[index].id}
+          className="relative"
+        >
+          <ChapterComponent
             id={CHAPTERS[index].id}
-            className="relative"
-          >
-            <ChapterComponent
-              id={CHAPTERS[index].id}
-              isActive={currentChapter === index}
-              scrollProgress={currentChapter === index ? 0.5 : 0}
-            />
-          </div>
-        ))}
-      </Suspense>
+            isActive={currentChapter === index}
+            scrollProgress={currentChapter === index ? 0.5 : 0}
+          />
+        </div>
+      ))}
     </div>
   );
 }
