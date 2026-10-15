@@ -118,19 +118,26 @@ interface AttackGraphProps {
   interactive?: boolean;
 }
 
+const EMPTY_ARRAY: string[] = [];
+
 export function AttackGraph({
   nodes: graphNodes,
   edges: graphEdges,
-  highlightPath = [],
-  blockedEdges = [],
-  protectedNodes = [],
+  highlightPath = EMPTY_ARRAY,
+  blockedEdges = EMPTY_ARRAY,
+  protectedNodes = EMPTY_ARRAY,
   onNodeClick,
   className = '',
   showControls = true,
   showMiniMap = false,
   interactive = true,
 }: AttackGraphProps) {
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [, setSelectedNode] = useState<string | null>(null);
+
+  // Memoize stable keys for array props to avoid unnecessary recalculations
+  const highlightKey = highlightPath.join(',');
+  const blockedKey = blockedEdges.join(',');
+  const protectedKey = protectedNodes.join(',');
 
   // Convert to ReactFlow format
   const rfNodes: Node[] = useMemo(() =>
@@ -149,7 +156,7 @@ export function AttackGraph({
       draggable: interactive,
       selectable: interactive,
     })),
-    [graphNodes, highlightPath, protectedNodes, interactive]
+    [graphNodes, highlightKey, protectedKey, interactive]
   );
 
   const rfEdges: Edge[] = useMemo(() =>
@@ -189,17 +196,8 @@ export function AttackGraph({
         },
       };
     }),
-    [graphEdges, highlightPath, blockedEdges]
+    [graphEdges, highlightKey, blockedKey]
   );
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(rfNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(rfEdges);
-
-  // Update when props change
-  useMemo(() => {
-    setNodes(rfNodes);
-    setEdges(rfEdges);
-  }, [rfNodes, rfEdges]);
 
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node.id);
@@ -209,10 +207,8 @@ export function AttackGraph({
   return (
     <div className={`w-full h-full ${className}`} style={{ minHeight: 400 }}>
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={interactive ? onNodesChange : undefined}
-        onEdgesChange={interactive ? onEdgesChange : undefined}
+        nodes={rfNodes}
+        edges={rfEdges}
         onNodeClick={handleNodeClick}
         nodeTypes={nodeTypes}
         fitView
