@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChapterProps, RemediationAction, OptimizationResult } from '../types';
-import { ChapterLayout, SectionBlock, GlowCard } from '../components/shared';
+import { ChapterLayout, SectionBlock } from '../components/shared';
 import {
   REMEDIATION_ACTIONS,
   ATTACK_GRAPH_NODES,
@@ -14,18 +14,8 @@ import {
   generateOptimizationResults,
 } from '../utils/graphUtils';
 import {
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Zap,
   DollarSign,
-  Layers,
-  ArrowRight,
   RotateCcw,
-  Sliders,
-  CheckCircle2,
-  AlertCircle,
-  HelpCircle,
   Sparkles,
   Info,
   Check,

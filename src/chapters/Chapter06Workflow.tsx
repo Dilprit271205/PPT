@@ -20,8 +20,6 @@ import {
   LayoutDashboard,
   ArrowRight,
   CheckCircle2,
-  Clock,
-  Sparkles,
   X,
   Code2,
   ChevronRight,

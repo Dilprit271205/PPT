@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ChapterProps, GraphNode } from '../types';
-import { ChapterLayout, SectionBlock, GlowCard } from '../components/shared';
+import { ChapterProps } from '../types';
+import { ChapterLayout, SectionBlock } from '../components/shared';
 import { ATTACK_GRAPH_NODES, ATTACK_GRAPH_EDGES, ATTACK_PATH } from '../data/scenarioData';
 import { AttackGraph, GraphLegend, NodeDetailPanel } from '../components/AttackGraph';
-import { Layers, Zap, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 const assetCategories = [
   { type: 'identity', label: 'Employees & Identities', count: 0 },
@@ -21,7 +20,7 @@ const assetCategories = [
 
 const PATH_NODE_IDS = ATTACK_PATH.steps.map((s) => s.nodeId);
 
-export default function Chapter04Solution({ id, isActive }: ChapterProps) {
+export default function Chapter04Solution({ id }: ChapterProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const selectedNode = ATTACK_GRAPH_NODES.find((n) => n.id === selectedNodeId) || null;
 

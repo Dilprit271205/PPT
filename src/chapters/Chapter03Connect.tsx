@@ -17,7 +17,7 @@ const connectionReasons = [
   { from: 'Cloud Access', to: 'Customer Database', reason: 'Cloud role has database read permissions', type: 'permission', icon: Network },
 ];
 
-export default function Chapter03Connect({ id, isActive }: ChapterProps) {
+export default function Chapter03Connect({ id }: ChapterProps) {
   const [phase, setPhase] = useState<'scattered' | 'connecting' | 'connected'>('scattered');
   const [selectedConnection, setSelectedConnection] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);

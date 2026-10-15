@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChapterProps } from '../types';
-import { ChapterLayout, SectionBlock, GlowCard } from '../components/shared';
+import { ChapterLayout, SectionBlock } from '../components/shared';
 import { THREAT_INTEL_SOURCES } from '../data/scenarioData';
-import { Brain, GitBranch, BarChart3, Activity, ChevronRight, Zap, Network, TrendingUp, Info, Shield, Bug, AlertTriangle } from 'lucide-react';
+import { BarChart3, ChevronRight, Zap, Network, TrendingUp, Info, Shield, Bug, AlertTriangle } from 'lucide-react';
 
 const modules = [
   {
@@ -49,7 +49,7 @@ const threatIcons: Record<string, React.FC<{ size?: number; className?: string }
   'CISA KEV': Zap,
 };
 
-export default function Chapter05Intelligence({ id, isActive }: ChapterProps) {
+export default function Chapter05Intelligence({ id }: ChapterProps) {
   const [activeModule, setActiveModule] = useState<string>('gnn');
   const [showThreatIntel, setShowThreatIntel] = useState(false);
 

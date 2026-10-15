@@ -9,7 +9,7 @@ import { Clock, Shield, User, Server, AlertTriangle, Eye, X, FileText, ExternalL
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function Chapter02Problem({ id, isActive }: ChapterProps) {
+export default function Chapter02Problem({ id }: ChapterProps) {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [showReveal, setShowReveal] = useState(false);
   const alertsRef = useRef<HTMLDivElement>(null);
