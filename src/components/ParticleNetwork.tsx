@@ -1,178 +1,14 @@
-import { useRef, useEffect, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { useRef, useEffect } from 'react';
 
 interface Particle {
-  position: THREE.Vector3;
-  velocity: THREE.Vector3;
-  connections: number[];
-}
-
-function NetworkParticles({ count = 80, mousePos }: { count?: number; mousePos: React.RefObject<{ x: number; y: number }> }) {
-  const pointsRef = useRef<THREE.Points>(null);
-  const linesRef = useRef<THREE.LineSegments>(null);
-  const particlesRef = useRef<Particle[]>([]);
-
-  const { positions, colors } = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    const colors = new Float32Array(count * 3);
-    const particles: Particle[] = [];
-
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 20;
-      const y = (Math.random() - 0.5) * 12;
-      const z = (Math.random() - 0.5) * 8;
-      positions[i * 3] = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = z;
-
-      // Red-ish tones
-      const r = 0.8 + Math.random() * 0.2;
-      const g = 0.15 + Math.random() * 0.1;
-      const b = 0.15 + Math.random() * 0.15;
-      colors[i * 3] = r;
-      colors[i * 3 + 1] = g;
-      colors[i * 3 + 2] = b;
-
-      particles.push({
-        position: new THREE.Vector3(x, y, z),
-        velocity: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.005,
-          (Math.random() - 0.5) * 0.005,
-          (Math.random() - 0.5) * 0.002
-        ),
-        connections: [],
-      });
-    }
-
-    particlesRef.current = particles;
-    return { positions, colors };
-  }, [count]);
-
-  const linePositions = useMemo(() => new Float32Array(count * count * 6), [count]);
-  const lineColors = useMemo(() => new Float32Array(count * count * 6), [count]);
-
-  useFrame((state) => {
-    if (!pointsRef.current || !linesRef.current) return;
-
-    const positionAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
-    const particles = particlesRef.current;
-    const time = state.clock.getElapsedTime();
-
-    // Mouse influence
-    const mx = mousePos.current ? mousePos.current.x * 5 : 0;
-    const my = mousePos.current ? mousePos.current.y * 3 : 0;
-
-    // Update particles
-    for (let i = 0; i < count; i++) {
-      const p = particles[i];
-      p.position.add(p.velocity);
-
-      // Add subtle mouse attraction
-      const dx = mx - p.position.x;
-      const dy = my - p.position.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 5) {
-        p.position.x += dx * 0.0005;
-        p.position.y += dy * 0.0005;
-      }
-
-      // Gentle oscillation
-      p.position.y += Math.sin(time * 0.5 + i * 0.1) * 0.001;
-
-      // Bounds
-      if (p.position.x > 10 || p.position.x < -10) p.velocity.x *= -1;
-      if (p.position.y > 6 || p.position.y < -6) p.velocity.y *= -1;
-      if (p.position.z > 4 || p.position.z < -4) p.velocity.z *= -1;
-
-      positionAttr.setXYZ(i, p.position.x, p.position.y, p.position.z);
-    }
-    positionAttr.needsUpdate = true;
-
-    // Update connections
-    let lineIndex = 0;
-    const connectionDistance = 3;
-
-    for (let i = 0; i < count; i++) {
-      for (let j = i + 1; j < count; j++) {
-        const d = particles[i].position.distanceTo(particles[j].position);
-        if (d < connectionDistance) {
-          const alpha = 1 - d / connectionDistance;
-
-          linePositions[lineIndex * 6] = particles[i].position.x;
-          linePositions[lineIndex * 6 + 1] = particles[i].position.y;
-          linePositions[lineIndex * 6 + 2] = particles[i].position.z;
-          linePositions[lineIndex * 6 + 3] = particles[j].position.x;
-          linePositions[lineIndex * 6 + 4] = particles[j].position.y;
-          linePositions[lineIndex * 6 + 5] = particles[j].position.z;
-
-          const r = 0.9 * alpha;
-          const g = 0.2 * alpha;
-          const b = 0.2 * alpha;
-          lineColors[lineIndex * 6] = r;
-          lineColors[lineIndex * 6 + 1] = g;
-          lineColors[lineIndex * 6 + 2] = b;
-          lineColors[lineIndex * 6 + 3] = r;
-          lineColors[lineIndex * 6 + 4] = g;
-          lineColors[lineIndex * 6 + 5] = b;
-
-          lineIndex++;
-        }
-      }
-    }
-
-    const lineGeom = linesRef.current.geometry;
-    const linePosAttr = lineGeom.attributes.position as THREE.BufferAttribute;
-    const lineColAttr = lineGeom.attributes.color as THREE.BufferAttribute;
-    linePosAttr.needsUpdate = true;
-    lineColAttr.needsUpdate = true;
-    lineGeom.setDrawRange(0, lineIndex * 2);
-  });
-
-  return (
-    <>
-      <points ref={pointsRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions, 3]}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            args={[colors, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          size={0.08}
-          vertexColors
-          transparent
-          opacity={0.8}
-          sizeAttenuation
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </points>
-      <lineSegments ref={linesRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[linePositions, 3]}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            args={[lineColors, 3]}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial
-          vertexColors
-          transparent
-          opacity={0.4}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </lineSegments>
-    </>
-  );
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  baseRadius: number;
+  alpha: number;
 }
 
 interface ParticleNetworkProps {
@@ -180,29 +16,137 @@ interface ParticleNetworkProps {
 }
 
 export function ParticleNetwork({ className = '' }: ParticleNetworkProps) {
-  const mousePos = useRef({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mousePos.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mousePos.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
     };
+    window.addEventListener('resize', handleResize);
+
+    // Mouse position for subtle interaction
+    const mouse = { x: width / 2, y: height / 2, active: false };
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.active = true;
+    };
+    const handleMouseLeave = () => {
+      mouse.active = false;
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+
+    // Initialize particles
+    const particleCount = Math.min(Math.floor((width * height) / 14000), 85);
+    const particles: Particle[] = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      const z = Math.random() * 0.8 + 0.2; // depth factor 0.2 to 1.0
+      const radius = (Math.random() * 2 + 1) * z;
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z,
+        vx: (Math.random() - 0.5) * 0.4 * z,
+        vy: (Math.random() - 0.5) * 0.4 * z,
+        radius,
+        baseRadius: radius,
+        alpha: Math.random() * 0.5 + 0.3,
+      });
+    }
+
+    const maxDistance = 140;
+
+    // Animation Loop
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      // Update and draw particles
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        // Move
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Subtle mouse influence
+        if (mouse.active) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 180 && dist > 0) {
+            const force = (180 - dist) / 180;
+            p.x += (dx / dist) * force * 0.6 * p.z;
+            p.y += (dy / dist) * force * 0.6 * p.z;
+          }
+        }
+
+        // Screen wrap
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+
+        // Draw connections to nearby particles
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p.x - p2.x;
+          const dy = p.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < maxDistance) {
+            const connAlpha = (1 - dist / maxDistance) * 0.22 * p.z * p2.z;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(229, 57, 53, ${connAlpha})`;
+            ctx.lineWidth = 0.8 * p.z;
+            ctx.stroke();
+          }
+        }
+
+        // Draw particle dot with red cyber glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 77, 90, ${p.alpha * p.z})`;
+        ctx.shadowColor = '#FF4D5A';
+        ctx.shadowBlur = 8 * p.z;
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset shadow for performance
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }, []);
 
   return (
-    <div className={`absolute inset-0 ${className}`}>
-      <Canvas
-        camera={{ position: [0, 0, 8], fov: 60 }}
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
-      >
-        <ambientLight intensity={0.3} />
-        <NetworkParticles count={60} mousePos={mousePos} />
-      </Canvas>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className={`absolute inset-0 pointer-events-none ${className}`}
+      style={{ display: 'block', width: '100%', height: '100%' }}
+    />
   );
 }
-

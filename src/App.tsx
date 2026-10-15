@@ -5,7 +5,7 @@ import { PresentationProvider, usePresentationStore } from './store/presentation
 import { Navigation } from './components/Navigation';
 import { ChapterMenu } from './components/ChapterMenu';
 import { ProgressBar } from './components/ProgressBar';
-import { LoadingScreen } from './components/LoadingScreen';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { CHAPTERS } from './data/scenarioData';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -54,12 +54,9 @@ function PresentationContent() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   // Set up chapter scroll tracking
   useEffect(() => {
-    if (!isLoaded) return;
-
     const triggers: ScrollTrigger[] = [];
 
     chapterRefs.current.forEach((ref, index) => {
@@ -83,7 +80,7 @@ function PresentationContent() {
     return () => {
       triggers.forEach((t) => t.kill());
     };
-  }, [isLoaded, setCurrentChapter, setScrollProgress]);
+  }, [setCurrentChapter, setScrollProgress]);
 
   const navigateToChapter = useCallback((index: number) => {
     const ref = chapterRefs.current[index];
@@ -158,16 +155,6 @@ function PresentationContent() {
     }
   }, [setIsFullscreen]);
 
-  // Initial load
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!isLoaded) {
-    return <LoadingScreen />;
-  }
-
   return (
     <div ref={containerRef} className="relative bg-[#07080C] min-h-screen">
       {/* Progress Bar */}
@@ -230,8 +217,10 @@ function PresentationContent() {
 
 export default function App() {
   return (
-    <PresentationProvider>
-      <PresentationContent />
-    </PresentationProvider>
+    <ErrorBoundary>
+      <PresentationProvider>
+        <PresentationContent />
+      </PresentationProvider>
+    </ErrorBoundary>
   );
 }

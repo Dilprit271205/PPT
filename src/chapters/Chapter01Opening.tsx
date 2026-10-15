@@ -8,15 +8,10 @@ import { ParticleNetwork } from '../components/ParticleNetwork';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function Chapter01Opening({ id, isActive }: ChapterProps) {
+export default function Chapter01Opening({ id }: ChapterProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
-  const [showContent, setShowContent] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowContent(true), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const [showContent] = useState(true);
 
   useEffect(() => {
     if (!containerRef.current) return;
