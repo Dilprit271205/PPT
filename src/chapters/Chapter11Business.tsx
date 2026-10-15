@@ -354,3 +354,4 @@ export default function Chapter11Business({ id }: ChapterProps) {
     </ChapterLayout>
   );
 }
+

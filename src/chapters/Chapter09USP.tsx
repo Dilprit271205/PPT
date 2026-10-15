@@ -212,3 +212,4 @@ export default function Chapter09USP({ id }: ChapterProps) {
     </ChapterLayout>
   );
 }
+

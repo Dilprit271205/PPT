@@ -365,3 +365,4 @@ export default function Chapter10TechStack({ id }: ChapterProps) {
     </ChapterLayout>
   );
 }
+

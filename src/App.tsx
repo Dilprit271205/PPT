@@ -48,6 +48,8 @@ function PresentationContent() {
     setScrollProgress,
     isFullscreen,
     setIsFullscreen,
+    isAutoplay,
+    setIsAutoplay,
   } = usePresentationStore();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,6 +84,25 @@ function PresentationContent() {
       triggers.forEach((t) => t.kill());
     };
   }, [isLoaded, setCurrentChapter, setScrollProgress]);
+
+  const navigateToChapter = useCallback((index: number) => {
+    const ref = chapterRefs.current[index];
+    if (ref) {
+      ref.scrollIntoView({ behavior: 'smooth' });
+      setIsChapterMenuOpen(false);
+    }
+  }, [setIsChapterMenuOpen]);
+
+  // Autoplay progression
+  useEffect(() => {
+    let timer: any;
+    if (isAutoplay) {
+      timer = setInterval(() => {
+        navigateToChapter((currentChapter + 1) % CHAPTERS.length);
+      }, 10000);
+    }
+    return () => clearInterval(timer);
+  }, [isAutoplay, currentChapter, navigateToChapter]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -125,15 +146,7 @@ function PresentationContent() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentChapter, isChapterMenuOpen, isFullscreen]);
-
-  const navigateToChapter = useCallback((index: number) => {
-    const ref = chapterRefs.current[index];
-    if (ref) {
-      ref.scrollIntoView({ behavior: 'smooth' });
-      setIsChapterMenuOpen(false);
-    }
-  }, [setIsChapterMenuOpen]);
+  }, [currentChapter, isChapterMenuOpen, isFullscreen, navigateToChapter]);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -171,8 +184,15 @@ function PresentationContent() {
         onNext={() => navigateToChapter(Math.min(currentChapter + 1, CHAPTERS.length - 1))}
         onMenuToggle={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
         onHome={() => navigateToChapter(0)}
+        onEnd={() => navigateToChapter(CHAPTERS.length - 1)}
         onFullscreen={toggleFullscreen}
         isFullscreen={isFullscreen}
+        isAutoplay={isAutoplay}
+        onToggleAutoplay={() => setIsAutoplay(!isAutoplay)}
+        onReset={() => {
+          setIsAutoplay(false);
+          navigateToChapter(0);
+        }}
       />
 
       {/* Chapter Menu Overlay */}

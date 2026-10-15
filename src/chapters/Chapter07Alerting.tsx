@@ -536,3 +536,4 @@ export default function Chapter07Alerting({ id }: ChapterProps) {
     </ChapterLayout>
   );
 }
+

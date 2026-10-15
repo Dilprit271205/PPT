@@ -407,3 +407,4 @@ export default function Chapter08Remediation({ id }: ChapterProps) {
     </ChapterLayout>
   );
 }
+

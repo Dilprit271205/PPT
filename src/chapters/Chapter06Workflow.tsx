@@ -432,3 +432,4 @@ export default function Chapter06Workflow({ id }: ChapterProps) {
     </ChapterLayout>
   );
 }
+
